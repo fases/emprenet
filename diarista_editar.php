@@ -25,6 +25,7 @@ $diaristaAtual = mysqli_fetch_array(mysqli_query($bd, "select * from diarista wh
 
         <!-- Custom styles for this template -->
         <link href="css/emprenet/padrao.css" rel="stylesheet">
+        <link href="css/emprenet/dashboard.css" rel="stylesheet">
         <link href="css/emprenet/tabela_disponibilidade.css" rel="stylesheet">
 
     </head>
@@ -48,7 +49,7 @@ $diaristaAtual = mysqli_fetch_array(mysqli_query($bd, "select * from diarista wh
                         <div id="navbar" class="navbar-collapse navbar-right collapse">
                             <ul class="nav navbar-nav">
                                 <li><a href="index.php">Início</a></li>
-                                <li><a href="#">Quem somos</a></li>
+                                <li><a href="sobre.php">Quem somos</a></li>
                                 <li class="active"><a href="login.php">Acessar conta</a></li>
                             </ul>
                         </div>
@@ -60,7 +61,24 @@ $diaristaAtual = mysqli_fetch_array(mysqli_query($bd, "select * from diarista wh
 
 
         <div class="container">
-            <form class="painel-centralizado" method="post" action="acao_editar_diarista.php">
+
+            <nav class="pull-left menu-lateral">
+                <p class="text-center">
+                    <img src="css/emprenet/img/patroa-feliz-no-laptop.jpg" class="img-circle" alt="Imagem de perfil" width="130" height="130"/>
+                    <br/><br/>
+                    <strong><?php echo $usuarioAtual['nome'] . ' ' . $usuarioAtual['sobrenome']; ?></strong>
+                </p>
+                <ul class="nav nav-pills nav-stacked">
+                    <li><a href="usuario_editar.php"><i class="glyphicon glyphicon-user"></i> Dados de usuário</a></li>
+                    <li><a href="diarista_editar.php"><i class="glyphicon glyphicon-tag"></i> Dados de diarista</a></li>
+                    <li><a href="ver_notificacoes.php"><i class="glyphicon glyphicon-bell"></i> Notificações</a></li>
+                    <li><a href="historico.php"><i class="glyphicon glyphicon-briefcase"></i> Histórico</a></li>
+                    <li><a href="boleto_sicredi.php"><i class="glyphicon glyphicon-usd"></i> Boleto bancário</a></li>
+                    <li><a href="acao_logoff.php"><i class="glyphicon glyphicon-log-out"></i> Sair do Emprenet</a></li>
+                </ul>
+            </nav>
+
+            <form class="main painel-centralizado" method="post" action="acao_editar_diarista.php">
                 <h1>Atualizar dados de diarista</h1>
 
                 <strong>Categoria:</strong>
@@ -70,16 +88,16 @@ $diaristaAtual = mysqli_fetch_array(mysqli_query($bd, "select * from diarista wh
                     $res = mysqli_query($bd, $sql);
                     while ($categoria = mysqli_fetch_array($res)){
                     ?>
-                    
+
                     <option <?php if ($diaristaAtual['categoria'] == $categoria['id']) echo "selected"; ?> value="<?php echo $categoria['id']; ?>">
                         <?php echo $categoria['nome']; ?>
                     </option>
-                    
+
                     <?php
                     }
                     ?>
                 </select>
-                
+
                 <br/>
                 <strong>Pretensão de valor cobrado por hora:</strong><br/><small>(Se houver centavos, utilize como separador o <strong>ponto</strong>, não vírgula)</small>
                 <div class="input-group">
@@ -98,7 +116,7 @@ $diaristaAtual = mysqli_fetch_array(mysqli_query($bd, "select * from diarista wh
                     </span>
                     <input type="text" value="Estou aceitando trabalhos no momento." class="form-control" aria-label="..." readonly/>
                 </div>
-                
+
                 <br/>
                 <strong>Marque os dias e turnos em que você está disponível para trabalhar no momento:</strong>
                 <br/>

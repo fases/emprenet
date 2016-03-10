@@ -17,29 +17,19 @@ if (isset($_GET['porNome'])){
         $aux .= "usuario=$id or ";
     }
 
-    if (mysqli_num_rows($resAux)){
+    if ($aux!=""){
         $sql .= " and (".$aux." 1=0)";
+    } else{
+        $sql .= " and (false)";
     }
 }
 
 // filtro local
 if (isset($_GET['porLocal'])){
-    $cidade = $_GET['cidade'];
+    $cidade = isset($_GET['cidade'])? $_GET['cidade'] : "";
     $uf = isset($_GET['uf']) ? $_GET['uf'] : "";
 
-    $sqlAux = "";
-    if (!$cidade==""){
-        $sqlAux .= " and (cidade='$cidade')";
-    }
-
-    if (!$uf==""){
-        $sqlAux .= " and (uf='$uf')";
-    }
-    
-    if ($sqlAux != ""){
-        $sqlAux = "select * from usuario where true ".$sqlAux;
-    }
-    
+    $sqlAux = "select * from usuario where cidade='$cidade' or uf='$uf' ";
     $resAux = mysqli_query($bd, $sqlAux);
 
     $aux = "";
@@ -48,8 +38,10 @@ if (isset($_GET['porLocal'])){
         $aux .= "usuario=$id or ";
     }
 
-    if (mysqli_num_rows($resAux)){
+    if ($aux!=""){
         $sql .= " and (".$aux." 1=0)";
+    } else{
+        $sql .= " and (false)";
     }
 }
 
@@ -70,7 +62,7 @@ if (isset($_GET['porPrecoMax'])){
 // filtro categoria
 if (isset($_GET['porCategoria'])){
     $categoria = $_GET['categoria'];
-
+    
     if (!($categoria=='0')){
         $sql .= " and (categoria=$categoria)";
     }
@@ -168,16 +160,36 @@ $diaristas = mysqli_query($bd, $sql);
                         <div class="row">
                             <div class="col-md-6">
                                 <p>
-                                    <strong>Nota:</strong>
+                                    <?php
+                                    $sql = "select * from comentario where diarista=".$diarista['usuario'];
+                                    $comentarios = mysqli_query($bd, $sql);
+                                    $media = 0;
+                                    while ($comentario = mysqli_fetch_array($comentarios)){
+                                        $media += $comentario['avaliacao'];
+                                    }
+                                    $media = $media / mysqli_num_rows($comentarios); // porcentagem
+                                    $qtdCoracoes = (int) ($media * 0.5); // calc proporção
+                                    ?>
+                                    <strong>Nota: </strong> (<?php echo $media; ?> de 10)
+                                    <?php for ($i = 0; $i < $qtdCoracoes; $i++){ ?>
                                     <i class="glyphicon glyphicon-heart"></i>
-                                    <i class="glyphicon glyphicon-heart"></i>
-                                    <i class="glyphicon glyphicon-heart"></i>
+                                    <?php }
+                                    for ($i = 0; $i < 5 - $qtdCoracoes; $i++){
+                                    ?>
                                     <i class="glyphicon glyphicon-heart-empty"></i>
-                                    <i class="glyphicon glyphicon-heart-empty"></i>
+                                    <?php } ?>
                                 </p>
                             </div>
                             <div class="col-md-6">
-                                <p><a href="usuario.php?id=<?php echo $diarista['usuario']; ?>">Ver mais...</a></p>
+                                <p>
+                                    <?php if(isset($_SESSION['usuario'])){ ?>
+                                    <a href="usuario.php?id=<?php echo $diarista['usuario']; ?>">
+                                    <?php }else{?>
+                                    <a href="login.php">
+                                    <?php } ?>
+                                        Ver mais...
+                                    </a>
+                                </p>
                             </div>
                         </div>
                     </div>

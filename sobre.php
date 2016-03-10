@@ -1,12 +1,4 @@
-<?php
-session_start();
-if (isset($_SESSION['usuario'])){
-    header("location: bemvindo.php");
-}
-
-?>
-
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
     <head>
         <meta charset="utf-8">
@@ -48,8 +40,8 @@ if (isset($_SESSION['usuario'])){
                         <div id="navbar" class="navbar-collapse navbar-right collapse">
                             <ul class="nav navbar-nav">
                                 <li><a href="index.php">Início</a></li>
-                                <li><a href="sobre.php">Quem somos</a></li>
-                                <li class="active"><a href="login.php">Acessar conta</a></li>
+                                <li class="active"><a href="sobre.php">Quem somos</a></li>
+                                <li><a href="login.php">Acessar conta</a></li>
                             </ul>
                         </div>
                     </div>
@@ -60,25 +52,16 @@ if (isset($_SESSION['usuario'])){
 
 
         <div class="container">
-            <form class="painel-centralizado" method="post" action="acao_login.php">
-                <h1>Log in!</h1>
-                <?php if (isset($_GET['erro'])){ ?>
-                <p style="background-color: red; color: white; padding-left: 5px;">E-mail ou senha incorretos!</p>
-                <?php } ?>
-                <input type="email" class="form-control" placeholder="E-mail" name="email" required/>
-                <input type="password" class="form-control" placeholder="Senha" name="senha" required/>
+            <div class="row painel-centralizado text-center">
+                <h1 style="color: #2980b9">Emprenet<br/><small>Desenvolvedores</small></h1>
                 
-                <p class="pull-right text-right">
-                    <br/>
-                    <button type="submit" class="btn btn-primary">Entrar</button>
-                    <br/><br/>
-                    <small>Esqueceu sua senha? <a href="#">Recupere aqui</a>.</small>
-                    <br/>
-                    <span>Novo cliente contratante? <a href="usuario_novo.php">Cadastre-se agora!</a></span>
-                    <br/>
-                    <span>Ou crie uma <a href="usuario_novo.php?diarista=">conta de diarista</a>.</span>
-                </p>
-            </form>
+                <h2>Victor Nascimento<br/><small>Programador</small></h2>
+                <h2>Fernando de Oliveira Alves<br/><small>Programador</small></h2>
+                <h2>Gildomar Santos<br/><small>Designer</small></h2>
+                <br/>
+                <h4>Estamos no GitHub: <i class="glyphicon glyphicon-hand-down"></i><br/>
+                    <a href="https://github.com/fases/emprenet" target="_blank">github.com/fases/emprenet</a></h4>
+            </div>
         </div>
 
 

@@ -48,7 +48,7 @@ $isAtualDiarista = $_SESSION['is_usuario_diarista'];
                         <div id="navbar" class="navbar-collapse navbar-right collapse">
                             <ul class="nav navbar-nav">
                                 <li><a href="index.php">Início</a></li>
-                                <li><a href="#">Quem somos</a></li>
+                                <li><a href="sobre.php">Quem somos</a></li>
                                 <li class="active"><a href="login.php">Acessar conta</a></li>
                             </ul>
                         </div>
@@ -68,10 +68,20 @@ $isAtualDiarista = $_SESSION['is_usuario_diarista'];
                 </p>
                 <ul class="nav nav-pills nav-stacked">
                     <li><a href="usuario_editar.php"><i class="glyphicon glyphicon-user"></i> Dados de usuário</a></li>
-                    <?php if ($isAtualDiarista){ ?>
+                    <?php
+                    $parteSql = "";
+                    if ($isAtualDiarista){
+                        $parteSql = "diarista=".$usuarioAtual['id']." and diarista_aceitou is null";
+                    ?>
                     <li><a href="diarista_editar.php"><i class="glyphicon glyphicon-tag"></i> Dados de diarista</a></li>
-                    <?php } ?>
-                    <li class="disabled"><a href="#"><i class="glyphicon glyphicon-usd"></i> Gerar boleto bancário</a></li>
+                    <?php
+                    } else{
+                        $parteSql = "cliente=".$usuarioAtual['id']." and diarista_aceitou=1 and cliente_ok=0";
+                    }
+                    ?>
+                    <li><a href="ver_notificacoes.php"><i class="glyphicon glyphicon-bell" <?php echo mysqli_num_rows(mysqli_query($bd, "select * from notificacao where $parteSql")) ? " style='color: #f1c40f' " : ""; ?>></i> Notificações</a></li>
+                    <li><a href="historico.php"><i class="glyphicon glyphicon-briefcase"></i> Histórico</a></li>
+                    <li><a href="boleto_sicredi.php"><i class="glyphicon glyphicon-usd"></i> Boleto bancário</a></li>
                     <li><a href="acao_logoff.php"><i class="glyphicon glyphicon-log-out"></i> Sair do Emprenet</a></li>
                 </ul>
             </nav>
@@ -92,7 +102,7 @@ $isAtualDiarista = $_SESSION['is_usuario_diarista'];
                             <span class="input-group-addon"><input type="checkbox" name="porLocal" value="porLocal"></span>
                             <input type="text" name="cidade" class="form-control" placeholder="Por cidade..." />
                             <select class="form-control" name="uf">
-                                <option value="0">... e estado</option>
+                                <option value="0">... e estado (selecione)</option>
                                 <option value="AC">Acre (AC) </option>
                                 <option value="AL">Alagoas (AL) </option>
                                 <option value="AP">Amapá (AP) </option>
@@ -126,7 +136,7 @@ $isAtualDiarista = $_SESSION['is_usuario_diarista'];
                         <div class="input-group">
                             <span class="input-group-addon"><input type="checkbox" name="porCategoria" value="porCategoria"></span>
                             <select class="form-control" name="categoria">
-                                <option value="0">Por categoria</option>
+                                <option value="0">Por categoria (selecione)</option>
                                 <?php
                                 $sql = "select * from categoria";
                                 $res = mysqli_query($bd, $sql);
@@ -162,62 +172,98 @@ $isAtualDiarista = $_SESSION['is_usuario_diarista'];
                 <br/>
 
                 <div class="row painel-centralizado-maior top">
-                    <h2 class="text-center">Top diaristas<br/><small>No momento esta área está em construção...</small></h2>
+                    <h2 class="text-center">Top diaristas<br/><small>Melhores diaristas!</small></h2>
 
+                    <?php
+                    
+                    $sql = "select diarista.*, comentario.* from diarista inner join comentario on diarista.usuario = comentario.diarista order by comentario.avaliacao desc limit 10";
+                    $diaristas = mysqli_query($bd, $sql);
+                    /*
+                    $comentarios = mysqli_query($bd, $sql);
+                    $sql = "";
+                    while ($comentario = mysqli_fetch_array($comentarios)){
+                        $sql .= "or usuario=".$comentario['diarista'];
+                    }
+                    
+                    $sql = "select * from diarista where 0=1 $sql";
+                    $diaristas = mysqli_query($bd, $sql);
+                    */
+                    while ($diarista = mysqli_fetch_array($diaristas)){
+                    ?>
                     <div class="media">
                         <div class="media-left media-middle">
                             <img src="css/emprenet/img/diarista-feliz.jpg" class="img-circle media-object" width="100" height="100" />
                         </div>
                         <div class="media-body">
                             <div class="row">
-                                <div class="col-md-6"><p><strong>Nome: </strong>Fulana da Silva</p></div>
+                                <?php
+                        $usuario = mysqli_fetch_array(mysqli_query($bd, "select * from usuario where id=".$diarista['usuario']));
+                        $usuario = $usuario['nome']." ".$usuario['sobrenome'];
+                                ?>
+                                <div class="col-md-6"><p><strong>Nome: </strong><?php echo $usuario; ?></p></div>
                                 <div class="col-md-6"></div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><strong>Valor: </strong>R$100,00</p>
+                                    <p><strong>Valor hora: </strong>R$<?php echo $diarista['preco_por_hora']; ?></p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p><strong>Categoria: </strong>Faxineira</p>
+                                    <?php
+                        $categoria = mysqli_fetch_array(mysqli_query($bd, "select * from categoria where id=".$diarista['categoria']))['nome'];
+                                    ?>
+                                    <p><strong>Categoria: </strong><?php echo $categoria; ?></p>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <p>
-                                        <strong>Nota:</strong>
+                                        <?php
+                        $sql = "select * from comentario where diarista=".$diarista['usuario'];
+                        $comentarios = mysqli_query($bd, $sql);
+                        $media = 0;
+                        while ($comentario = mysqli_fetch_array($comentarios)){
+                            $media += $comentario['avaliacao'];
+                        }
+                        $media = $media / mysqli_num_rows($comentarios); // porcentagem
+                        $qtdCoracoes = (int) ($media * 0.5); // calc proporção
+                                        ?>
+                                        <strong>Nota: </strong> (<?php echo $media; ?> de 10)
+                                        <?php for ($i = 0; $i < $qtdCoracoes; $i++){ ?>
                                         <i class="glyphicon glyphicon-heart"></i>
-                                        <i class="glyphicon glyphicon-heart"></i>
-                                        <i class="glyphicon glyphicon-heart"></i>
+                                        <?php }
+                        for ($i = 0; $i < 5 - $qtdCoracoes; $i++){
+                                        ?>
                                         <i class="glyphicon glyphicon-heart-empty"></i>
-                                        <i class="glyphicon glyphicon-heart-empty"></i>
+                                        <?php } ?>
                                     </p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p><a href="#">Ver mais...</a></p>
+                                    <p><a href="usuario.php?id=<?php echo $diarista['usuario']; ?>">Ver mais...</a></p>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <?php
+                    }
+                    ?>
 
                 </div>
 
             </div>
 
-        </div>
+            <!-- FOOTER -->
+            <footer>
+                <div class="container">
+                    <p class="pull-right"><a href="#">Voltar ao topo</a></p>
+                    <p><strong>Desenvolvido pelo projeto <a href="https://github.com/fases/" target="_blank">FASES</a></strong></p>
+                </div>
+            </footer>
 
-        <!-- FOOTER -->
-        <footer>
-            <div class="container">
-                <p class="pull-right"><a href="#">Voltar ao topo</a></p>
-                <p><strong>Desenvolvido pelo projeto <a href="https://github.com/fases/" target="_blank">FASES</a></strong></p>
-            </div>
-        </footer>
-
-        <!-- Bootstrap core JavaScript
+            <!-- Bootstrap core JavaScript
 ================================================== -->
-        <!-- Placed at the end of the document so the pages load faster -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
+            <!-- Placed at the end of the document so the pages load faster -->
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+            <script src="js/bootstrap.min.js"></script>
 
-    </body>
-</html>
+            </body>
+        </html>

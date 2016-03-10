@@ -46,7 +46,7 @@ include("acao_conexao.php");
                         <div id="navbar" class="navbar-collapse navbar-right collapse">
                             <ul class="nav navbar-nav">
                                 <li><a href="index.php">Início</a></li>
-                                <li><a href="#">Quem somos</a></li>
+                                <li><a href="sobre.php">Quem somos</a></li>
                                 <li><a href="login.php">Acessar conta</a></li>
                             </ul>
                         </div>

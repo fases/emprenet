@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("acao_conexao.php");
 $usuarioAtual = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : null;
 $isAtualDiarista = $_SESSION['is_usuario_diarista'];
 ?>
@@ -25,7 +26,7 @@ $isAtualDiarista = $_SESSION['is_usuario_diarista'];
         <!-- Custom styles for this template -->
         <link href="css/emprenet/padrao.css" rel="stylesheet">
         <link href="css/emprenet/dashboard.css" rel="stylesheet">
-
+        
     </head>
     <!-- NAVBAR
 ================================================== -->
@@ -48,7 +49,7 @@ $isAtualDiarista = $_SESSION['is_usuario_diarista'];
                             <ul class="nav navbar-nav">
                                 <li><a href="index.php">Início</a></li>
                                 <li><a href="sobre.php">Quem somos</a></li>
-                                <li class="active"><a href="login.php">Acessar conta</a></li>
+                                <li><a href="login.php">Acessar conta</a></li>
                             </ul>
                         </div>
                     </div>
@@ -59,7 +60,7 @@ $isAtualDiarista = $_SESSION['is_usuario_diarista'];
 
 
         <div class="container">
-
+            
             <nav class="pull-left menu-lateral">
                 <p class="text-center">
                     <img src="css/emprenet/img/patroa-feliz-no-laptop.jpg" class="img-circle" alt="Imagem de perfil" width="130" height="130"/>
@@ -79,60 +80,64 @@ $isAtualDiarista = $_SESSION['is_usuario_diarista'];
                 </ul>
             </nav>
 
-            <form class="painel-centralizado" method="post" action="acao_editar_usuario.php">
-                <h1>Atualizar dados de usuário</h1>
+            <div class="main row painel-centralizado">
+                <h1 class="text-center">Notificações de <?php echo $usuarioAtual['nome']; ?></h1>
 
-                <strong>Nome:</strong>
-                <input type="text" class="form-control" value="<?php echo $usuarioAtual['nome']; ?>" readonly/>
-                <strong>Sobrenome:</strong>
-                <input type="text" class="form-control" value="<?php echo $usuarioAtual['sobrenome']; ?>" readonly/>
-                <strong>E-mail:</strong>
-                <input type="email" class="form-control" value="<?php echo $usuarioAtual['email']; ?>" readonly/>
-                <strong>Senha atual:</strong>
-                <input type="password" class="form-control" placeholder="Senha atual (OBRIGATÓRIA)" name="senha" required/>
-                <strong>Nova senha:</strong>
-                <input type="password" class="form-control" placeholder="Nova senha (se não deseja mudar, REPITA a atual)" name="senha1" required/>
-                <input type="password" class="form-control" placeholder="Repita a nova senha" name="senha2" required/>
-                <strong>Estado:</strong>
-                <select class="form-control" name="uf">
-                    <option value="AC">Acre (AC) </option>
-                    <option value="AL">Alagoas (AL) </option>
-                    <option value="AP">Amapá (AP) </option>
-                    <option value="AM">Amazonas (AM) </option>
-                    <option value="BA">Bahia (BA) </option>
-                    <option value="CE">Ceará (CE) </option>
-                    <option value="DF">Distrito Federal (DF) </option>
-                    <option value="ES">Espírito Santo (ES) </option>
-                    <option value="GO">Goiás (GO) </option>
-                    <option value="MA">Maranhão (MA) </option>
-                    <option value="MT">Mato Grosso (MT) </option>
-                    <option value="MS">Mato Grosso do Sul (MS) </option>
-                    <option value="MG">Minas Gerais (MG) </option>
-                    <option value="PA">Pará (PA) </option>
-                    <option value="PB">Paraíba (PB) </option>
-                    <option value="PR">Paraná (PR) </option>
-                    <option value="PE">Pernambuco (PE) </option>
-                    <option value="PI">Piauí (PI) </option>
-                    <option value="RJ">Rio de Janeiro (RJ) </option>
-                    <option value="RN">Rio Grande do Norte (RN) </option>
-                    <option value="RS">Rio Grande do Sul (RS) </option>
-                    <option value="RO">Rondônia (RO) </option>
-                    <option value="RR">Roraima (RR) </option>
-                    <option value="SC">Santa Catarina (SC) </option>
-                    <option value="SP">São Paulo (SP) </option>
-                    <option value="SE">Sergipe (SE) </option>
-                    <option value="TO">Tocantins (TO) </option>
-                </select>
-                <strong>Cidade:</strong>
-                <input type="text" class="form-control" placeholder="Sua cidade" value="<?php echo $usuarioAtual['cidade']; ?>" name="cidade" required/>
-                <strong>Endereço:</strong>
-                <input type="text" class="form-control" placeholder="Rua Brusque, n 666" value="<?php echo $usuarioAtual['endereco']; ?>" name="endereco" required/>
-
-                <p class="pull-right text-right">
-                    <br/>
-                    <button type="submit" class="btn btn-warning">Atualizar</button>
-                </p>
-            </form>
+                <?php
+                if ($isAtualDiarista) {
+                    $idDiarista = $usuarioAtual['id'];
+                    $sql = "select * from notificacao where diarista=$idDiarista and diarista_aceitou is null";
+                    $notificacoes = mysqli_query($bd, $sql);
+                ?>
+                
+                <h2><i class="glyphicon glyphicon-list-alt"></i> Clientes que entraram em contato e aguardam resposta:</h2>
+                
+                <ul>
+                    <?php 
+                    while($notificacao = mysqli_fetch_array($notificacoes)){
+                        $cliente = mysqli_fetch_array(mysqli_query($bd, "select * from usuario where id=".$notificacao['cliente']));
+                    ?>
+                    <li>
+                        <h3><strong><a href="usuario.php?id=<?php echo $cliente['id']; ?>"><?php echo $cliente['nome']." ".$cliente['sobrenome']; ?></a></strong> quer entrar em contato com o(a) diarista!</h3>
+                        <p>
+                        <strong>Proposta: </strong><?php echo $notificacao['mensagem']; ?>
+                        </p>
+                        <a href="acao_responder_notificacao.php?resposta=1&id=<?php echo $notificacao['id']; ?>">
+                            <button class="btn btn-success"><i class="glyphicon glyphicon-ok"></i> Aceitar</button>
+                        </a>
+                        <a href="acao_responder_notificacao.php?resposta=0&id=<?php echo $notificacao['id']; ?>">
+                            <button class="btn btn-danger"><i class="glyphicon glyphicon-remove"></i> Recusar</button>
+                        </a>
+                    </li>
+                    <?php } ?>
+                </ul>
+                
+                <?php
+                }else{ 
+                    $idCliente = $usuarioAtual['id'];
+                    $sql = "select * from notificacao where cliente=$idCliente and diarista_aceitou=1 and cliente_ok<>1";
+                    $notificacoes = mysqli_query($bd, $sql);
+                ?>
+                
+                <h2><i class="glyphicon glyphicon-list-alt"></i> Diaristas que aceitaram entrar em contato recentemente:</h2>
+                
+                <ul>
+                    <?php
+                    while($notificacao = mysqli_fetch_array($notificacoes)){
+                        $usuarioDiarista = mysqli_fetch_array(mysqli_query($bd, "select * from usuario where id=".$notificacao['diarista']));
+                    ?>
+                    <li>
+                        <h3><strong><a href="usuario.php?id=<?php echo $usuarioDiarista['id']; ?>"><?php echo $usuarioDiarista['nome']." ".$usuarioDiarista['sobrenome']; ?></a></strong> aceitou entrar em contato (clique no nome e veja o perfil atualizado dele(a))!</h3>
+                        <a href="acao_visualizar_notificacao.php?id=<?php echo $notificacao['id']; ?>">
+                            <button class="btn btn-primary"><i class="glyphicon glyphicon-check"></i> Visualizado</button>
+                        </a>
+                    </li>
+                    <?php } ?>
+                </ul>
+                
+                <?php } ?>
+                
+            </div>
         </div>
 
 

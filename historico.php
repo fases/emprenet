@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("acao_conexao.php");
 $usuarioAtual = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : null;
 $isAtualDiarista = $_SESSION['is_usuario_diarista'];
 ?>
@@ -48,7 +49,7 @@ $isAtualDiarista = $_SESSION['is_usuario_diarista'];
                             <ul class="nav navbar-nav">
                                 <li><a href="index.php">Início</a></li>
                                 <li><a href="sobre.php">Quem somos</a></li>
-                                <li class="active"><a href="login.php">Acessar conta</a></li>
+                                <li><a href="login.php">Acessar conta</a></li>
                             </ul>
                         </div>
                     </div>
@@ -79,60 +80,29 @@ $isAtualDiarista = $_SESSION['is_usuario_diarista'];
                 </ul>
             </nav>
 
-            <form class="painel-centralizado" method="post" action="acao_editar_usuario.php">
-                <h1>Atualizar dados de usuário</h1>
+            <div class="main row painel-centralizado">
+                <h1 class="text-center">Histórico de <?php echo $usuarioAtual['nome']; ?></h1>
 
-                <strong>Nome:</strong>
-                <input type="text" class="form-control" value="<?php echo $usuarioAtual['nome']; ?>" readonly/>
-                <strong>Sobrenome:</strong>
-                <input type="text" class="form-control" value="<?php echo $usuarioAtual['sobrenome']; ?>" readonly/>
-                <strong>E-mail:</strong>
-                <input type="email" class="form-control" value="<?php echo $usuarioAtual['email']; ?>" readonly/>
-                <strong>Senha atual:</strong>
-                <input type="password" class="form-control" placeholder="Senha atual (OBRIGATÓRIA)" name="senha" required/>
-                <strong>Nova senha:</strong>
-                <input type="password" class="form-control" placeholder="Nova senha (se não deseja mudar, REPITA a atual)" name="senha1" required/>
-                <input type="password" class="form-control" placeholder="Repita a nova senha" name="senha2" required/>
-                <strong>Estado:</strong>
-                <select class="form-control" name="uf">
-                    <option value="AC">Acre (AC) </option>
-                    <option value="AL">Alagoas (AL) </option>
-                    <option value="AP">Amapá (AP) </option>
-                    <option value="AM">Amazonas (AM) </option>
-                    <option value="BA">Bahia (BA) </option>
-                    <option value="CE">Ceará (CE) </option>
-                    <option value="DF">Distrito Federal (DF) </option>
-                    <option value="ES">Espírito Santo (ES) </option>
-                    <option value="GO">Goiás (GO) </option>
-                    <option value="MA">Maranhão (MA) </option>
-                    <option value="MT">Mato Grosso (MT) </option>
-                    <option value="MS">Mato Grosso do Sul (MS) </option>
-                    <option value="MG">Minas Gerais (MG) </option>
-                    <option value="PA">Pará (PA) </option>
-                    <option value="PB">Paraíba (PB) </option>
-                    <option value="PR">Paraná (PR) </option>
-                    <option value="PE">Pernambuco (PE) </option>
-                    <option value="PI">Piauí (PI) </option>
-                    <option value="RJ">Rio de Janeiro (RJ) </option>
-                    <option value="RN">Rio Grande do Norte (RN) </option>
-                    <option value="RS">Rio Grande do Sul (RS) </option>
-                    <option value="RO">Rondônia (RO) </option>
-                    <option value="RR">Roraima (RR) </option>
-                    <option value="SC">Santa Catarina (SC) </option>
-                    <option value="SP">São Paulo (SP) </option>
-                    <option value="SE">Sergipe (SE) </option>
-                    <option value="TO">Tocantins (TO) </option>
-                </select>
-                <strong>Cidade:</strong>
-                <input type="text" class="form-control" placeholder="Sua cidade" value="<?php echo $usuarioAtual['cidade']; ?>" name="cidade" required/>
-                <strong>Endereço:</strong>
-                <input type="text" class="form-control" placeholder="Rua Brusque, n 666" value="<?php echo $usuarioAtual['endereco']; ?>" name="endereco" required/>
+                <?php
+                $idUsuarioAtual = $usuarioAtual['id'];
+                $sql = "select * from notificacao where cliente=$idUsuarioAtual or diarista=$idUsuarioAtual";
+                $notificacoes = mysqli_query($bd, $sql);
+                ?>
 
-                <p class="pull-right text-right">
-                    <br/>
-                    <button type="submit" class="btn btn-warning">Atualizar</button>
-                </p>
-            </form>
+                <h2><i class="glyphicon glyphicon-time"></i> Registro de notificações recebidas e enviadas:</h2>
+
+                <ul>
+                    <?php
+                    while($notificacao = mysqli_fetch_array($notificacoes)){
+                        $outroUsuario = mysqli_fetch_array(mysqli_query($bd, "select * from usuario where id=".($idUsuarioAtual == $notificacao['diarista'] ? $notificacao['cliente'] : $notificacao['diarista'])));
+                    ?>
+                    <li>
+                        <h3><strong><a href="usuario.php?id=<?php echo $outroUsuario['id']; ?>"><?php echo $outroUsuario['nome']." ".$outroUsuario['sobrenome']; ?></a></strong> <?php echo $idUsuarioAtual == $notificacao['diarista'] ? " contatou você" : "foi contatado por você"; ?>. E a resposta foi <?php echo $notificacao['diarista_aceitou']=='1' ? "positiva" : ($notificacao['diarista_aceitou']=='0' ? "negativa" : "nenhuma ainda");?>.</h3>
+                    </li>
+                    <?php } ?>
+                </ul>
+
+            </div>
         </div>
 
 

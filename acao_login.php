@@ -24,7 +24,7 @@ if (mysqli_num_rows($res)){
     header("location: bemvindo.php");
 
 } else{
-    die("Erro na senha ou e-mail.");
+    header("location: login.php?erro=1");
 }
 
 ?>
